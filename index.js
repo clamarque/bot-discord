@@ -15,7 +15,6 @@ const enableCron = () => {
     cron.schedule('* 16 * * 5', () => {
         const ping = new Date();
         console.log(`Ping received at ${ping.getUTCHours()}:${ping.getUTCMinutes()}:${ping.getUTCSeconds()}`);
-        console.log('running a task every minute');
         freeGamesAuto();
     }, { scheduled: true, timezone: 'Europe/Paris' });
 }
@@ -39,7 +38,7 @@ const resetMessagesBot = (channel) => {
                 }
             })
         })
-        .catch(console.error);
+        .catch('resetMEssagesBotError',console.error);
 }
 
 client.on('voiceStateUpdate', async (oldMember, newMember) => {
@@ -48,10 +47,10 @@ client.on('voiceStateUpdate', async (oldMember, newMember) => {
     const role = textChannel.guild.roles.cache.find(role => role.name === 'noob');
     const totalMilliseconde = 3600 * 1000;
     if (oldMember.channelID !== newMember.channelID && newMember.channelID !== null) {
-        await textChannel.send(`<@&${role.id}> ${newMember.member.user.username} has joined the channel: ${currentChannel.name} `).then(sentMessage => {
+        await textChannel.send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans: ${currentChannel.name} `).then(sentMessage => {
             sentMessage.delete({ timeout: totalMilliseconde });
         }).catch(error => {
-            console.log('ERRROR:', error);
+            console.log('voiceStateUpdateError:', error);
         });
     };
 });

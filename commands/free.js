@@ -17,11 +17,25 @@ module.exports.run = async (client, message) => {
 
     let startDate = new Date();
     let endDate = new Date();
+    let releaseDate = new Date();
+    let upcoming = false;
 
     for (let game of games) {
-        // Format Date
-        startDate = dayjs(game.effectiveDate).format('DD/MM/YYYY');
-        endDate = dayjs(game.effectiveDate).add(7, 'day').format('DD/MM/YYYY');
+        releaseDate = dayjs(game.effectiveDate).format('YYYY');
+        const currentPromotion = game.promotions.promotionalOffers;
+        const upcomingPromotion = game.promotions.upcomingPromotionalOffers;
+
+        if (currentPromotion.length) {
+            upcoming = false;
+            startDate = dayjs(currentPromotion[0].promotionalOffers[0].startDate).format('DD/MM/YYYY');
+            endDate = dayjs(currentPromotion[0].promotionalOffers[0].endDate).format('DD/MM/YYYY');
+        } else if (upcomingPromotion.length) {
+            upcoming = true;
+            startDate = dayjs(upcomingPromotion[0].promotionalOffers[0].startDate).format('DD/MM/YYYY');
+            endDate = dayjs(upcomingPromotion[0].promotionalOffers[0].endDate).format('DD/MM/YYYY');
+        }
+
+
         let originalPrice = game.price.totalPrice.fmtPrice.originalPrice;
         let discountPrice = game.price.totalPrice.fmtPrice.discountPrice;
         // Format '0' value to 'FREE'
@@ -37,14 +51,14 @@ module.exports.run = async (client, message) => {
         //Create the MessageEmbed
         const embedFreeGame = new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setTitle(game.title)
+            .setTitle(`${game.title} (${releaseDate})`)
             .setURL('https://www.epicgames.com/store/fr/product/' + game.productSlug)
             .addFields(
                 { name: 'Date de début', value: startDate, inline: true },
                 { name: 'Date de fin', value: endDate, inline: true },
                 { name: '\u200b', value: '\u200b' },
                 { name: 'Prix d\'origine:', value: originalPrice, inline: true },
-                { name: 'Prix bas:', value: discountPrice, inline: true },
+                { name: 'Prix bas:', value: upcoming ? 'Bientôt disponible' : discountPrice, inline: true },
             )
             .setImage(encodeURI(gameImage))
             .setTimestamp()
