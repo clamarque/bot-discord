@@ -5,7 +5,7 @@ const dayjs = require('dayjs')
 // Free games JSON
 const urlEpicFreeGames = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=fr-FR&country=FR&allowCountries=FR";
 
-//Send embed messages about free games
+// Send embed messages about free games
 module.exports.run = async (client, message) => {
     //Receive JSON
     let games = [];
@@ -20,6 +20,11 @@ module.exports.run = async (client, message) => {
     let releaseDate = new Date();
     let upcoming = false;
 
+    // Order by date
+    games.sort((currentGame, nextGame) =>
+        currentGame.price.totalPrice.fmtPrice.discountPrice < nextGame.price.totalPrice.fmtPrice.discountPrice ? -1 : 1
+    );
+    // Get details
     for (let game of games) {
         releaseDate = dayjs(game.effectiveDate).format('YYYY');
         const currentPromotion = game.promotions.promotionalOffers;
@@ -48,7 +53,7 @@ module.exports.run = async (client, message) => {
                 gameImage = image.url;
             }
         }
-        //Create the MessageEmbed
+        // Create the MessageEmbed
         const embedFreeGame = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle(`${game.title} (${releaseDate})`)
@@ -64,7 +69,7 @@ module.exports.run = async (client, message) => {
             .setTimestamp()
             .setFooter('Le jeu est arrivé / arrive dans Epic Games: ' + startDate);
 
-        //Send message
+        // Send message
         await message.channel.send(embedFreeGame);
     }
 }   

@@ -7,12 +7,13 @@ dov.config();
 
 client.once('ready', () => {
     console.log('ready');
-    enableCron();
+    // enableCron();
+    freeGamesAuto();
 });
 
 const enableCron = () => {
     // execute to 17:00 Friday
-    cron.schedule('* 16 * * 5', () => {
+    cron.schedule('0 16 * * 5', () => {
         const ping = new Date();
         console.log(`Ping received at ${ping.getUTCHours()}:${ping.getUTCMinutes()}:${ping.getUTCSeconds()}`);
         freeGamesAuto();
