@@ -7,8 +7,7 @@ dov.config();
 
 client.once('ready', () => {
     console.log('ready');
-    // enableCron();
-    freeGamesAuto();
+    enableCron();
 });
 
 const enableCron = () => {
@@ -16,7 +15,10 @@ const enableCron = () => {
     cron.schedule('0 16 * * 5', () => {
         const ping = new Date();
         console.log(`Ping received at ${ping.getUTCHours()}:${ping.getUTCMinutes()}:${ping.getUTCSeconds()}`);
-        freeGamesAuto();
+        const enableDay = ping.getDay();
+        if (enableDay === 5 || enableDay === 6) {
+            freeGamesAuto();
+        }
     }, { scheduled: true, timezone: 'Europe/Paris' });
 }
 
