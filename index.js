@@ -45,12 +45,13 @@ const resetMessagesBot = (channel) => {
 }
 
 client.on('voiceStateUpdate', async (oldMember, newMember) => {
-    const textChannel = client.channels.cache.find(channel => channel.name === 'noob');
+    console.log('voiceState')
+    const textChannel = client.channels.cache.find(channel => channel.name === 'annonces');
     const currentChannel = client.channels.cache.find(channel => channel.id === newMember.channelID);
     const role = textChannel.guild.roles.cache.find(role => role.name === 'noob');
     const totalMilliseconde = 3600 * 1000;
     if (oldMember.channelID !== newMember.channelID && newMember.channelID !== null) {
-        await textChannel.send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans: ${currentChannel.name} `).then(sentMessage => {
+        await textChannel.send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans ${currentChannel.name} `).then(sentMessage => {
             sentMessage.delete({ timeout: totalMilliseconde });
         }).catch(error => {
             console.log('voiceStateUpdateError:', error);
