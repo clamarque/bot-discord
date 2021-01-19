@@ -23,12 +23,15 @@ const enableCron = () => {
 }
 
 const freeGamesAuto = () => {
-    const channel = client.channels.cache.find(channel => channel.name === 'actualités');
-    if (channel !== undefined) {
-        resetMessagesBot(channel);
-        const commandFile = require('./commands/free.js')
-        message = { channel: channel }
-        commandFile.run(client, message);
+    // const channel = client.channels.cache.find(channel => channel.name === 'annonces');
+    const channels = client.channels.cache.filter(channel => channel.name === 'annonces');
+    for (let channel of channels) {
+        if (channel[1] !== undefined) {
+            resetMessagesBot(channel[1]);
+            const commandFile = require('./commands/free.js')
+            message = { channel: channel[1] }
+            commandFile.run(client, message);
+        }
     }
 }
 
@@ -41,22 +44,29 @@ const resetMessagesBot = (channel) => {
                 }
             })
         })
-        .catch('resetMEssagesBotError',console.error);
+        .catch('resetMessagesBotError', console.error);
 }
 
 client.on('voiceStateUpdate', async (oldMember, newMember) => {
-    console.log('voiceState')
-    const textChannel = client.channels.cache.find(channel => channel.name === 'annonces');
+    const textChannels = client.channels.cache.filter(channel => channel.name === 'annonces');
     const currentChannel = client.channels.cache.find(channel => channel.id === newMember.channelID);
-    const role = textChannel.guild.roles.cache.find(role => role.name === 'noob');
-    const totalMilliseconde = 3600 * 1000;
-    if (oldMember.channelID !== newMember.channelID && newMember.channelID !== null) {
-        await textChannel.send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans ${currentChannel.name} `).then(sentMessage => {
-            sentMessage.delete({ timeout: totalMilliseconde });
-        }).catch(error => {
-            console.log('voiceStateUpdateError:', error);
-        });
-    };
+    const findRole = process.env.ROLES && process.env.ROLES.split(',');
+
+    for (let channel of textChannels) {
+        const role = channel[1].guild.roles.cache.find(role => findRole.includes(role.name)) || { id: null };
+        const totalMilliseconde = 3600 * 1000;
+        if (oldMember.channelID !== newMember.channelID && newMember.channelID !== null) {
+            const authorizedServer = process.env.ENABLE && process.env.ENABLE.split(',')
+            // Check for own server
+            if (channel[1].guild.name === newMember.guild.name && authorizedServer.includes(channel[1].guild.name)) {
+                await channel[1].send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans ${currentChannel.name} `).then(sentMessage => {
+                    sentMessage.delete({ timeout: totalMilliseconde });
+                }).catch(error => {
+                    console.error('voiceStateUpdateError:', error);
+                });
+            }
+        };
+    }
 });
 
 client.login(process.env.TOKEN);

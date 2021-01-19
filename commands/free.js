@@ -27,8 +27,8 @@ module.exports.run = async (client, message) => {
     // Get details
     for (let game of games) {
         releaseDate = dayjs(game.effectiveDate).format('YYYY');
-        const currentPromotion = game.promotions.promotionalOffers;
-        const upcomingPromotion = game.promotions.upcomingPromotionalOffers;
+        const currentPromotion = game.promotions ? game.promotions.promotionalOffers : [];
+        const upcomingPromotion = game.promotions ? game.promotions.upcomingPromotionalOffers : [];
 
         if (currentPromotion.length) {
             upcoming = false;
@@ -55,7 +55,7 @@ module.exports.run = async (client, message) => {
         }
         // Create the MessageEmbed
         const embedFreeGame = new Discord.MessageEmbed()
-            .setColor('#0099ff')
+            .setColor(upcoming ? '#ff001a' : '#0099ff')
             .setTitle(`${game.title} (${releaseDate})`)
             .setURL('https://www.epicgames.com/store/fr/product/' + game.productSlug)
             .addFields(
@@ -69,7 +69,9 @@ module.exports.run = async (client, message) => {
             .setTimestamp()
             .setFooter('Le jeu est arrivé / arrive dans Epic Games: ' + startDate);
 
-        // Send message
-        await message.channel.send(embedFreeGame);
+        // Send message with verification
+        if (releaseDate <= new Date().getFullYear()) {
+            await message.channel.send(embedFreeGame);
+        }
     }
 }   
