@@ -67,7 +67,7 @@ module.exports.run = async (client, message) => {
             )
             .setImage(encodeURI(gameImage))
             .setTimestamp()
-            .setFooter('Le jeu est arrivé / arrive dans Epic Games: ' + startDate);
+            .setFooter(`Le jeu ${upcoming ? 'arrive' : 'est arrivé'} dans Epic Games le ${startDate}`);
 
         // Send message with verification
         if (releaseDate <= new Date().getFullYear()) {
