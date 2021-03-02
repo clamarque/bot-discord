@@ -41,7 +41,7 @@ const freeGamesAuto = () => {
 };
 
 const resetMessagesBot = (channel) => {
-  channel.messages.fetch({limit: 10})
+  channel.messages.fetch({limit: 100})
       .then((messages) => {
         messages.forEach((message) => {
           if (!message.pinned) {
