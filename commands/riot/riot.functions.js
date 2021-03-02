@@ -112,7 +112,7 @@ const searchActiveGames = async (summoner) => {
         .catch((error) => {
           summoner.inGame = false;
 
-          console.log({
+          console.error({
             error: error.response.status,
             message: error.response.statusText,
             request: 'spectator',
@@ -128,7 +128,6 @@ module.exports = {
     const games = [];
 
     for (const summoner of members) {
-      console.log('name:', summoner.name);
       await riotApi.getSummonerData(summoner.name)
           .then(async ({data}) => {
             const activeGame = await searchActiveGames({...data, ...summoner});
