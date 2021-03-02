@@ -7,7 +7,6 @@ const client = new Discord.Client();
 const prefix = '!';
 const riotFunctions = require('./commands/riot/riot.functions.js');
 
-
 dov.config();
 
 client.once('ready', () => {
@@ -33,9 +32,9 @@ const freeGamesAuto = () => {
   for (const channel of channels) {
     if (channel[1] !== undefined) {
       resetMessagesBot(channel[1]);
-      const commandFile = require('./commands/free.js');
+      const commandFile = require('./commands/epic/free.js');
       message = {channel: channel[1]};
-      commandFile.run(client, message);
+      commandFile.run(Discord, message);
     }
   }
 };
