@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
-const Discord = require('discord.js');
+const {Client, GatewayIntentBits} = require('discord.js');
+const cooldownTime = 300000; // 5 minutes en millisecondes
+const cooldowns = new Set(); // Liste des utilisateurs en cooldown
 const dov = require('dotenv');
 const cron = require('node-cron');
 
@@ -41,34 +43,56 @@ const resetMessagesBot = (channel) => {
       .catch('resetMessagesBotError', console.error);
 };
 
-client.on('voiceStateUpdate', async (oldMember, newMember) => {
-  const textChannels = client.channels.cache.filter((channel) => channel.name === 'annonces');
-  const currentChannel = client.channels.cache.find((channel) => channel.id === newMember.channelID);
-  const findRole = process.env.ROLES && process.env.ROLES.split(',');
-
-  for (const channel of textChannels) {
-    const role = channel[1].guild.roles.cache.find((role) => findRole.includes(role.name)) || {id: null};
-    const totalMilliseconde = 3600 * 1000;
-    if (oldMember.channelID !== newMember.channelID && newMember.channelID !== null) {
-      const authorizedServer = process.env.ENABLE && process.env.ENABLE.split(',');
-      // Check for own server
-      if (channel[1].guild.name === newMember.guild.name && authorizedServer.includes(channel[1].guild.name)) {
-        await channel[1].send(`<@&${role.id}> Un ${newMember.member.user.username} sauvage apparaît dans ${currentChannel.name} `).then((sentMessage) => {
-          sentMessage.delete({timeout: totalMilliseconde});
-        }).catch((error) => {
-          console.error('voiceStateUpdateError:', error);
-        });
-      }
-    };
-  }
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
 });
 
-client.on('message', async (message) => {
-  if (!message.content.startsWith(prefix) || message.author.bot) return;
+client.once('ready', () => {
+  console.log('ready');
+  enableCron();
+});
 
-  const commandFile = require('./commands/riot/riot.discord.js');
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  const channels = client.channels.cache.filter((channel) => channel.type === 0 && channel.name === 'annonces');
+  const findRoles = process.env.ROLES && process.env.ROLES.split(',');
+  const authorizedServers = process.env.ENABLE && process.env.ENABLE.split(',');
 
-  commandFile.run(Discord, message);
+  // eslint-disable-next-line no-unused-vars
+  for (const [_, channel] of channels.entries()) {
+    const guild = channel.guild;
+    const role = guild?.roles.cache.find((role) => findRoles.includes(role.name)) || null;
+
+    if (oldState.channelId !== newState.channelId && newState.channelId !== null) {
+      console.log('user is connected to vocal');
+
+      if (guild.available && authorizedServers.includes(guild.name)) {
+        const currentChannel = newState.channel;
+        console.log(`User ${newState.member.user.username} joined channel ${currentChannel.name}`);
+
+        if (!cooldowns.has(newState.member.id)) {
+          console.log(`Sending message in channel ${channel.name}`);
+          await channel.send(`<@&${role?.id ?? ''}> Un ${newState.member.user.username} sauvage apparaît dans ${currentChannel.name}`)
+              .then((sentMessage) => {
+                setTimeout(() =>
+                  sentMessage.delete().catch((error) => console.error(`Error deleting message in ${channel.name}`, error))
+                , 600000);
+              })
+              .catch((error) => {
+                console.error(`Error sending message in ${channel.name}`, error);
+              });
+
+          cooldowns.add(newState.member.id);
+          setTimeout(() => {
+            cooldowns.delete(newState.member.id);
+          }, cooldownTime);
+        }
+      }
+    }
+  }
 });
 
 client.login(process.env.TOKEN);
