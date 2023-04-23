@@ -3,17 +3,7 @@ const Discord = require('discord.js');
 const dov = require('dotenv');
 const cron = require('node-cron');
 
-const client = new Discord.Client();
-const prefix = '!';
-const riotFunctions = require('./commands/riot/riot.functions.js');
-
 dov.config();
-
-client.once('ready', () => {
-  console.log('ready');
-  riotFunctions.loadChampions();
-  enableCron();
-});
 
 const enableCron = () => {
   // execute to 17:00 Friday
